@@ -1,8 +1,18 @@
 const express = require('express');
-const productController = require('../controllers/products-controller');
-
 const router = express.Router();
 
-router.get('/', productController.getProducts);
+const shopController = require('../controllers/shop-controller');
+
+// / => GET
+router.get('/', shopController.getHomePage);
+
+// /product-list => GET
+router.get('/product-list', shopController.getProducts);
+
+// /cart => GET
+router.get('/cart', shopController.getCart);
+
+// /checkout => GET
+router.get('/checkout', shopController.getCheckout);
 
 module.exports = router;
