@@ -7,7 +7,7 @@ const shopController = require('../controllers/shop-controller');
 router.get('/', shopController.getHomePage);
 
 // /product-list => GET
-router.get('/product-list', shopController.getProducts);
+router.get('/products', shopController.getProducts);
 
 // /cart => GET
 router.get('/cart', shopController.getCart);
