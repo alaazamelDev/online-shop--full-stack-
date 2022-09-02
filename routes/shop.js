@@ -6,11 +6,17 @@ const shopController = require('../controllers/shop-controller');
 // / => GET
 router.get('/', shopController.getHomePage);
 
-// /product-list => GET
+// /products => GET
 router.get('/products', shopController.getProducts);
+
+// /products/productId => GET
+router.get('/products/:productId', shopController.getProductById);
 
 // /cart => GET
 router.get('/cart', shopController.getCart);
+
+// /cart => POST
+router.post('/cart', shopController.postCart);
 
 // /cart => GET
 router.get('/orders', shopController.getOrders);

@@ -1,3 +1,4 @@
+const Cart = require('../models/cart');
 const Product = require('../models/product')
 
 // Index Page
@@ -22,6 +23,18 @@ exports.getProducts = (req, res, next) => {
     });
 };
 
+// Get product by id
+exports.getProductById = (req, res, next) => {
+    const prodId = req.params.productId;
+    Product.findById(prodId, product => {
+        res.render('shop/product-detail', {
+            product: product,
+            pageTitle: product.title,
+            path: '/products',
+        });
+    });
+};
+
 // Cart Page
 exports.getCart = (req, res, next) => {
     Product.fetchAll((products) => {
@@ -31,6 +44,14 @@ exports.getCart = (req, res, next) => {
             path: '/cart',
         });
     });
+};
+
+exports.postCart = (req, res, next) => {
+    const productId = req.body.productId;
+    Product.findById(productId, product => {
+        Cart.addProduct(product.id, product.price);
+    });
+    res.redirect('/cart');
 };
 
 // Orders Page

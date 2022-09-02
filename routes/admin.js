@@ -18,8 +18,8 @@ router.get('/edit-product', adminController.postEditProduct);
 // /admin/edit-product => GET
 router.post('/edit-product', adminController.getEditProduct);
 
-// /admin/admin-products => GET
-router.get('/admin-products', adminController.getAdminProducts);
+// /admin/products => GET
+router.get('/products', adminController.getAdminProducts);
 
 
 exports.routes = router;
