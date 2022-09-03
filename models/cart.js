@@ -27,6 +27,7 @@ module.exports = class Cart {
             let updatedProduct;
             if (existingProduct) {
                 updatedProduct = { ...existingProduct };
+                // increase the quantity of the product
                 updatedProduct.quantity += 1;
                 cart.products[existingProductIndex] = updatedProduct;
             } else {
@@ -38,6 +39,35 @@ module.exports = class Cart {
                 console.log(err);
             })
         });
-        // increase the quantity of the product
+    }
+
+    static removeProduct(id, productPrice) {
+        fs.readFile(storageDir, (err, fileContent) => {
+            if (err) {
+                return;
+            }
+            const cart = JSON.parse(fileContent);
+            const cartProducts = cart.products;
+            const product = cartProducts.find(pro => pro.id === id);
+            const productQty = product.quantity;
+
+
+            // new version of cart
+            const updatedCart = { ...cart };
+            updatedCart.totalPrice -= (productPrice * productQty);
+            updatedCart.products = cartProducts.filter(
+                pro => pro.id !== id
+            );
+
+            // Write the cart back to the file
+            fs.writeFile(
+                storageDir,
+                JSON.stringify(updatedCart),
+                err => {
+                    console.log(err);
+                }
+            );
+
+        });
     }
 }
