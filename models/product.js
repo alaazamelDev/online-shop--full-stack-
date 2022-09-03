@@ -1,25 +1,6 @@
-const path = require('path');
-const fs = require('fs');
-const rootDir = require('../util/path');
-const Cart = require('./cart');
-
-const storageDir = path.join(
-    rootDir,
-    'data',
-    'products.json'
-);
-
-const getProductsFromFile = cb => {
-    fs.readFile(storageDir, (err, fileContent) => {
-        if (err) {
-            return cb([]);
-        }
-        return cb(JSON.parse(fileContent));
-    });
-}
-
+const db = require('../util/database');
 module.exports = class Product {
-    constructor(id, title, imageUrl, description, price) {
+    constructor({ id, title, imageUrl, description, price } = {}) {
         this.id = id;
         this.title = title;
         this.imageUrl = imageUrl;
@@ -28,56 +9,39 @@ module.exports = class Product {
     }
 
     save() {
-        getProductsFromFile(products => {
-            if (this.id) {
-                // we are in update mode
-                const existingProductIndex = products.findIndex(
-                    pro => pro.id === this.id
-                );
-                const updatedProducts = [...products];
-                updatedProducts[existingProductIndex] = this;
+        // create new product mode
+        return db.execute('INSERT INTO products (title, imageUrl, price, description) VALUES (?, ?, ?, ?)',
+            [
+                this.title,
+                this.imageUrl,
+                this.price,
+                this.description,
+            ]);
+    }
 
-                // write the info to the file
-                fs.writeFile(storageDir, JSON.stringify(updatedProducts), (err) => {
-                    console.log('error while weiting file: ' + err);
-                });
-            } else {
-                this.id = Math.random().toString();
-                products.push(this);
-                fs.writeFile(storageDir, JSON.stringify(products), (err) => {
-                    console.log('error while weiting file: ' + err);
-                });
-            }
-        });
+    update() {
+        // we are in update mode
+        return db.execute('UPDATE products SET title = ? , imageUrl = ?, price = ?, description = ? WHERE id = ?',
+            [
+                this.title,
+                this.imageUrl,
+                this.price,
+                this.description,
+                this.id,
+            ]);
     }
 
 
 
-    static fetchAll(callBack) {
-        getProductsFromFile(callBack);
+    static fetchAll() {
+        return db.execute('SELECT * FROM products');
     }
 
-    static findById(id, cb) {
-        getProductsFromFile(products => {
-            const product = products.find(pro => pro.id === id);
-            if (product) {
-                cb(product);
-            }
-        });
+    static findById(id) {
+        return db.execute('SELECT * FROM products WHERE id = ?', [id]);
     }
 
-    static deleteById(id, cb) {
-        getProductsFromFile(products => {
-
-            // delete product from cart 
-            Cart.removeProduct(id, products.find(pro => pro.id === id).price);
-
-            const updatedProducts = products.filter(pro => pro.id !== id);
-            
-            // write the new products to the file
-            fs.writeFile(storageDir, JSON.stringify(updatedProducts), (err) => {
-                console.log(err);
-            });
-        });
+    static deleteById(id) {
+        return db.execute('DELETE FROM products WHERE id = ?', [id]);
     }
-}
+};

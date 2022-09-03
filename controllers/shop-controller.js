@@ -3,24 +3,31 @@ const Product = require('../models/product')
 
 // Index Page
 exports.getHomePage = (req, res, next) => {
-    Product.fetchAll((products) => {
-        res.render('shop/index', {
-            prods: products,
-            pageTitle: 'Shop',
-            path: '/',
-        });
-    });
+    Product.fetchAll()
+        .then(
+            ([rows, fieldData]) => {
+                res.render('shop/index', {
+                    prods: rows,
+                    pageTitle: 'Shop',
+                    path: '/',
+                });
+            }
+        )
+        .catch(err => console.log(err));
 };
 
 // User's Products page
 exports.getProducts = (req, res, next) => {
-    Product.fetchAll((products) => {
-        res.render('shop/product-list', {
-            prods: products,
-            pageTitle: 'Products',
-            path: '/products',
-        });
-    });
+    Product.fetchAll()
+        .then(
+            ([rows, fieldData]) => {
+                res.render('shop/product-list', {
+                    prods: rows,
+                    pageTitle: 'Products',
+                    path: '/products',
+                });
+            }
+        ).catch(err => console.log(err));
 };
 
 // Get product by id
@@ -71,13 +78,16 @@ exports.postCart = (req, res, next) => {
 
 // Orders Page
 exports.getOrders = (req, res, next) => {
-    Product.fetchAll((products) => {
-        res.render('shop/orders', {
-            prods: products,
-            pageTitle: 'Orders',
-            path: '/orders',
-        });
-    });
+    Product.fetchAll()
+        .then(
+            ([rows, fieldData]) => {
+                res.render('shop/orders', {
+                    prods: rows,
+                    pageTitle: 'Orders',
+                    path: '/orders',
+                });
+            }
+        ).catch(err => console.log(err));
 };
 
 // Checkout Page
