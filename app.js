@@ -16,7 +16,9 @@ const shopRoutes = require('./routes/shop');
 const Product = require('./models/product');
 const User = require('./models/user');
 const Cart = require('./models/cart');
+const Order = require('./models/order');
 const CartItem = require('./models/cart-item');
+const OrderItem = require('./models/order-item');
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -65,11 +67,24 @@ Cart.belongsTo(User,
 Cart.belongsToMany(Product, { through: CartItem })
 Product.belongsToMany(Cart, { through: CartItem })
 
+/// Order(m) <=> User(1)
+User.hasMany(Order);
+Order.belongsTo(User,
+    {
+        constraints: true,
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE',
+    });
+
+/// Order(m) <=> Product(m)
+Product.belongsToMany(Order, { through: OrderItem });
+Order.belongsToMany(Product, { through: OrderItem });
+
 // sync defined models with sql database
 sequelize
     // .sync({ force: true })
     .sync()
-    .then(result => {
+    .then(() => {
         // Create one user instance
         User.findByPk(1)
             .then(user => {

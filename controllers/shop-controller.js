@@ -1,4 +1,3 @@
-const Cart = require('../models/cart');
 const Product = require('../models/product')
 
 // Index Page
@@ -94,18 +93,6 @@ exports.postCart = (req, res, next) => {
         .catch(err => console.log(err));
 };
 
-// Orders Page
-exports.getOrders = (req, res, next) => {
-    Product.findAll()
-        .then(products => {
-            res.render('shop/orders', {
-                prods: products,
-                pageTitle: 'Orders',
-                path: '/orders',
-            });
-        })
-        .catch(err => console.log(err));
-};
 
 // Checkout Page
 exports.getCheckout = (req, res, next) => {
@@ -127,6 +114,48 @@ exports.postDeleteCartItem = (req, res, next) => {
         })
         .then(() => {
             res.redirect('/cart');
+        })
+        .catch(err => console.log(err));
+};
+
+// Orders Page
+exports.getOrders = (req, res, next) => {
+    req.user.getOrders({ include: ['products'] })
+        .then(orders => {
+            res.render('shop/orders', {
+                orders: orders,
+                pageTitle: 'Orders',
+                path: '/orders',
+            });
+        })
+        .catch(err => console.log(err));
+};
+
+exports.postOrder = (req, res, next) => {
+    let fetchedCart;
+    req.user.getCart()
+        .then(cart => {
+            fetchedCart = cart;
+            return cart.getProducts();
+        })
+        // products inside of the cart
+        .then(products => {
+            return req.user.createOrder()
+                .then(order => {
+                    order.addProducts(
+                        products.map(product => {
+                            product.orderItem = {
+                                quantity: product.cartItem.quantity
+                            };
+                            return product;
+                        })
+                    );
+                })
+                .then(result => {
+                    fetchedCart.setProducts(null);  // empty the cart
+                    res.redirect('/orders');
+                })
+                .catch(err => console.log(err));
         })
         .catch(err => console.log(err));
 };
