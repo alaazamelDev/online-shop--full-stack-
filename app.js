@@ -15,6 +15,8 @@ const adminData = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
 const Product = require('./models/product');
 const User = require('./models/user');
+const Cart = require('./models/cart');
+const CartItem = require('./models/cart-item');
 
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -50,11 +52,24 @@ Product.belongsTo(User,
         onUpdate: 'CASCADE'
     });
 
+/// User(1) <=> Cart(1)
+User.hasOne(Cart);
+Cart.belongsTo(User,
+    {
+        constraints: true,
+        onDelete: 'CASCADE',
+        onUpdate: 'CASCADE'
+    });
+
+/// Cart(m) <=> Product(m)
+Cart.belongsToMany(Product, { through: CartItem })
+Product.belongsToMany(Cart, { through: CartItem })
+
 // sync defined models with sql database
 sequelize
+    // .sync({ force: true })
     .sync()
     .then(result => {
-
         // Create one user instance
         User.findByPk(1)
             .then(user => {
@@ -62,12 +77,14 @@ sequelize
                     return User.create({
                         name: 'Alaa Zamel',
                         email: 'alaa.zamel80@gmail.com',
+                    }).then(user => {
+                        return user.createCart();
                     });
                 }
                 return user;
             })
-            .then(user => {
-                console.log(user);
+            .then(cart => {
+
                 app.listen(3000);
             })
             .catch(err => console.log(err));
