@@ -1,3 +1,4 @@
+const Cart = require('../models/cart');
 const Product = require('../models/product')
 
 // Index Page
@@ -22,15 +23,50 @@ exports.getProducts = (req, res, next) => {
     });
 };
 
-// Cart Page
-exports.getCart = (req, res, next) => {
-    Product.fetchAll((products) => {
-        res.render('shop/cart', {
-            prods: products,
-            pageTitle: 'Cart',
-            path: '/cart',
+// Get product by id
+exports.getProductById = (req, res, next) => {
+    const prodId = req.params.productId;
+    Product.findById(prodId, product => {
+        res.render('shop/product-detail', {
+            product: product,
+            pageTitle: product.title,
+            path: '/products',
         });
     });
+};
+
+// Cart Page
+exports.getCart = (req, res, next) => {
+    Cart.getCart(cart => {
+        Product.fetchAll(products => {
+            const cartProducts = [];
+            for (let product of products) {
+                const cartProductData = cart.products.find(
+                    pro => pro.id === product.id
+                );
+                if (cartProductData) {
+                    cartProducts.push({
+                        productData: product,
+                        qty: cartProductData.quantity
+                    });
+                }
+            }
+            res.render('shop/cart', {
+                products: cartProducts,
+                pageTitle: 'My Cart',
+                path: '/cart',
+            });
+        });
+    });
+
+};
+
+exports.postCart = (req, res, next) => {
+    const productId = req.body.productId;
+    Product.findById(productId, product => {
+        Cart.addProduct(product.id, product.price);
+    });
+    res.redirect('/cart');
 };
 
 // Orders Page
@@ -50,4 +86,13 @@ exports.getCheckout = (req, res, next) => {
         pageTitle: 'Checkout',
         path: '/checkout',
     });
+};
+
+exports.postDeleteCartItem = (req, res, next) => {
+    const productId = req.body.productId;
+    Product.findById(productId, product => {
+        Cart.removeProduct(productId, product.price);
+        res.redirect('/cart');
+    });
+
 };
