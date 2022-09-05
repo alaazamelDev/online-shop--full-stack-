@@ -2,7 +2,8 @@ const { getDatabase } = require("../util/database");
 const mongodb = require("mongodb");
 
 class Product {
-  constructor({ title, imageUrl, price, description }) {
+  constructor({ _id, title, imageUrl, price, description }) {
+    this._id = id ? new mongodb.ObjectId(_id) : null;
     this.title = title;
     this.imageUrl = imageUrl;
     this.price = price;
@@ -10,10 +11,16 @@ class Product {
   }
 
   save() {
-    const db = getDatabase();
-    return db
-      .collection("products")
-      .insertOne(this)
+    let dbOp;
+    if (this._id) {
+      // We are in update mode
+      dbOp = getDatabase()
+        .collection("products")
+        .updateOne({ _id: this._id }, { $set: this });
+    } else {
+      dbOp = getDatabase().collection("products").insertOne(this);
+    }
+    return dbOp
       .then((result) => {
         console.log(result);
       })
@@ -46,6 +53,20 @@ class Product {
       .then((product) => {
         console.log(product);
         return product;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  static deleteById(prodId) {
+    const db = getDatabase();
+    return db
+      .collection("products")
+      .deleteOne({ _id: new mongodb.ObjectId(prodId) })
+      .then((result) => {
+        console.log(result);
+        return result;
       })
       .catch((err) => {
         console.log(err);
