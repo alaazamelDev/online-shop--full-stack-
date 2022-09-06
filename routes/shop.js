@@ -10,22 +10,22 @@ router.get("/", shopController.getHomePage);
 router.get("/products", shopController.getProducts);
 
 // /products/productId => GET
-router.get('/products/:productId', shopController.getProductById);
+router.get("/products/:productId", shopController.getProductById);
 
 // /cart => GET
-router.get('/cart', shopController.getCart);
+router.get("/cart", shopController.getCart);
 
 // /cart => POST
-router.post('/cart', shopController.postCart);
+router.post("/cart", shopController.postCart);
 
 // /cart-delete-item => POST
-router.post('/cart-delete-item', shopController.postDeleteCartItem)
+router.post("/cart-delete-item", shopController.postDeleteCartItem);
 
 // /create-order =>POST
-router.post('/create-order', shopController.postOrder);
+router.post("/create-order", shopController.postOrder);
 
 // /cart => GET
-router.get('/orders', shopController.getOrders);
+router.get("/orders", shopController.getOrders);
 
 // // /checkout => GET
 // router.get('/checkout', shopController.getCheckout);
