@@ -1,8 +1,9 @@
 const path = require("path");
+const mongoose = require("mongoose");
+const Configs = require("./configs/configs");
 
 const express = require("express");
 const bodyParser = require("body-parser");
-const { mongoConnect } = require("./util/database");
 
 const app = express();
 
@@ -22,14 +23,9 @@ app.use(express.static(path.join(__dirname, "public")));
 
 // pass user object through requests
 app.use((req, res, next) => {
-  User.findById("6315e676a8f3d50c3af36cbb")
+  User.findById("631733eb038bf1f296c9102c")
     .then((user) => {
-      req.user = new User({
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        cart: user.cart,
-      });
+      req.user = user;
       next();
     })
     .catch((err) => console.log(err));
@@ -40,7 +36,22 @@ app.use(shopRoutes);
 
 app.use(errorsController.get404);
 
-mongoConnect(() => {
-  console.log("Connected");
-  app.listen(3000);
-});
+mongoose
+  .connect(Configs.mongoDbConnectionString)
+  .then((result) => {
+    console.log("Connected");
+    User.findOne().then((user) => {
+      if (!user) {
+        const user = new User({
+          email: "alaa@test.com",
+          name: "Alaa",
+          cart: { items: [] },
+        });
+        user.save();
+      }
+    });
+    app.listen(3000);
+  })
+  .catch((err) => {
+    console.log(err);
+  });
