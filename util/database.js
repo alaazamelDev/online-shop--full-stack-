@@ -1,4 +1,5 @@
 const mongodb = require("mongodb");
+const Configs = require("../configs/configs");
 const MongoClient = mongodb.MongoClient;
 
 let _database;
@@ -8,9 +9,7 @@ let _database;
  * @param {Function(client)} callback
  */
 const mongoConnect = (callback) => {
-  MongoClient.connect(
-    "mongodb+srv://alaazamel:AOjIa7jIlHElkqFx@cluster0.bvcheuy.mongodb.net/shop?retryWrites=true"
-  )
+  MongoClient.connect(Configs.mongoDbConnectionString)
     .then((client) => {
       _database = client.db("shop");
       callback();
