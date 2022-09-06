@@ -64,6 +64,7 @@ exports.postEditProduct = (req, res, next) => {
     price: updatedPrice,
     imageUrl: updatedImageUrl,
     description: updatedDescription,
+    userId: req.user._id, // store a reference to the user as type of relation
   });
 
   product

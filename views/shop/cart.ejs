@@ -5,16 +5,16 @@
     <body>
         <%- include('../includes/navigation.ejs') %>
             <main>
-                <% if(products.length> 0) {%>
+                <% if(products.length > 0) {%>
                     <ul class="cart__item-list">
                         <% products.forEach(product=>{ %>
                             <li class="cart__item">
                                 <p>
-                                    <%= product.title %> (<%= product.cartItem.quantity %>)
+                                    <%= product.title %> ( <%= product.quantity %> )
                                 </p>
                                 <form action="/cart-delete-item" method="post">
                                     <button type="submit" class="btn danger">Delete</button>
-                                    <input type="hidden" name="productId" value="<%= product.id %>">
+                                    <input type="hidden" name="productId" value="<%= product._id %>">
                                 </form>
                             </li>
                             <% }); %>
