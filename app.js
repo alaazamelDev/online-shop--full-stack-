@@ -1,11 +1,20 @@
 const path = require("path");
 const mongoose = require("mongoose");
 const Configs = require("./configs/configs");
+const session = require("express-session");
+
+// Used to store sessions in MongoDB
+const MongoDBStore = require("connect-mongodb-session")(session);
 
 const express = require("express");
 const bodyParser = require("body-parser");
 
 const app = express();
+const store = new MongoDBStore({
+  uri: Configs.mongoDbConnectionString,
+  collection: "sessions",
+  databaseName: "shop",
+});
 
 const errorsController = require("./controllers/errors-controller");
 
@@ -21,10 +30,18 @@ const authRoutes = require("./routes/auth");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  session({
+    secret: "my secret key",
+    store: store, // change default MemoryStore to MongoDB Store
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
 // pass user object through requests
 app.use((req, res, next) => {
-  User.findById("631733eb038bf1f296c9102c")
+  User.findById("6318c1e4e66b59f9b44cc228")
     .then((user) => {
       req.user = user;
       next();
@@ -52,6 +69,7 @@ mongoose
         user.save();
       }
     });
+    // app.listen(3000, "192.168.1.105");
     app.listen(3000);
   })
   .catch((err) => {

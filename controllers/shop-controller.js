@@ -5,11 +5,11 @@ const Order = require("../models/order");
 exports.getHomePage = (req, res, next) => {
   Product.find()
     .then((products) => {
-      console.log(products);
       res.render("shop/index", {
         prods: products,
         pageTitle: "Shop",
         path: "/",
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -19,11 +19,11 @@ exports.getHomePage = (req, res, next) => {
 exports.getProducts = (req, res, next) => {
   Product.find()
     .then((products) => {
-      console.log(products);
       res.render("shop/product-list", {
         prods: products,
         pageTitle: "Products",
         path: "/products",
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -34,11 +34,11 @@ exports.getProductById = (req, res, next) => {
   const prodId = req.params.productId;
   Product.findById(prodId)
     .then((product) => {
-      console.log(product);
       res.render("shop/product-detail", {
         product: product,
         pageTitle: product.title,
         path: "/products",
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -49,11 +49,11 @@ exports.getCart = (req, res, next) => {
   req.user
     .populate("cart.items.productId")
     .then((user) => {
-      console.log(user.cart.items);
       res.render("shop/cart", {
         products: user.cart.items,
         pageTitle: "My Cart",
         path: "/cart",
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -94,6 +94,7 @@ exports.getOrders = (req, res, next) => {
         orders: orders,
         pageTitle: "Orders",
         path: "/orders",
+        isAuthenticated: req.session.isLoggedIn,
       });
     })
     .catch((err) => console.log(err));
@@ -109,12 +110,10 @@ exports.postOrder = (req, res, next) => {
           product: { ...pro.productId._doc },
         };
       });
-      //   console.log(products);
       const order = new Order({
         user: req.user,
         products: products,
       });
-      console.log("Order: ", order);
       return order.save();
     })
     .then(() => {
