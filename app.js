@@ -40,12 +40,12 @@ app.use(
 );
 
 // pass user object through requests
-app.use((req, res, next) => {
-  User.findOne().then((user) => {
-    req.user = user;
-    next();
-  });
-});
+// app.use((req, res, next) => {
+//   User.findOne().then((user) => {
+//     req.user = user;
+//     next();
+//   });
+// });
 
 app.use((req, res, next) => {
   if (!req.session.user) {
@@ -70,16 +70,6 @@ mongoose
   .connect(Configs.mongoDbConnectionString)
   .then((result) => {
     console.log("Connected");
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          email: "alaa@test.com",
-          name: "Alaa",
-          cart: { items: [] },
-        });
-        user.save();
-      }
-    });
     // app.listen(3000, "192.168.1.105");
     app.listen(3000);
   })
