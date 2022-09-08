@@ -41,7 +41,18 @@ app.use(
 
 // pass user object through requests
 app.use((req, res, next) => {
-  User.findById("6318c1e4e66b59f9b44cc228")
+  User.findOne().then((user) => {
+    req.user = user;
+    next();
+  });
+});
+
+app.use((req, res, next) => {
+  if (!req.session.user) {
+    console.log("User: ");
+    return next();
+  }
+  User.findById(req.session.user._id)
     .then((user) => {
       req.user = user;
       next();

@@ -63,9 +63,11 @@ exports.postCart = (req, res, next) => {
   const productId = req.body.productId;
   Product.findById(productId)
     .then((product) => {
-      return req.user.addToCart(product);
+      req.user.addToCart(product);
     })
-    .then(() => {});
+    .then(() => {
+      res.redirect("/cart");
+    });
 };
 
 // // Checkout Page

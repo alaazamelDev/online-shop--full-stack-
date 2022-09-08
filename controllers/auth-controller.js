@@ -11,7 +11,11 @@ exports.getLogin = (req, res, next) => {
 // /login => POST
 exports.postLogin = (req, res, next) => {
   req.session.isLoggedIn = true;
-  res.redirect("/");
+  console.log("Object: ", req.user);
+  req.session.user = req.user;
+  req.session.save((err) => {
+    res.redirect("/");
+  });
 };
 
 exports.postLogout = (req, res, next) => {
