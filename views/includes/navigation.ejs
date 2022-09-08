@@ -43,9 +43,15 @@
           >Login</a
         >
       </li>
+      <li class="main-header__item">
+        <a class="<%= path === '/sign-up' ? 'active' : '' %>" href="/sign-up"
+          >SignUp</a
+        >
+      </li>
       <% } else { %>
       <li class="main-header__item">
         <form action="/logout" method="post">
+          <input type="hidden" name="_csrf" value="<%= csrfToken %>" />
           <button type="submit">Logout</button>
         </form>
       </li>

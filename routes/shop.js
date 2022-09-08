@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const shopController = require("../controllers/shop-controller");
+const isAuthMiddleware = require("../middlewares/is-auth");
 
 // / => GET
 router.get("/", shopController.getHomePage);
@@ -13,19 +14,23 @@ router.get("/products", shopController.getProducts);
 router.get("/products/:productId", shopController.getProductById);
 
 // /cart => GET
-router.get("/cart", shopController.getCart);
+router.get("/cart", isAuthMiddleware, shopController.getCart);
 
 // /cart => POST
-router.post("/cart", shopController.postCart);
+router.post("/cart", isAuthMiddleware, shopController.postCart);
 
 // /cart-delete-item => POST
-router.post("/cart-delete-item", shopController.postDeleteCartItem);
+router.post(
+  "/cart-delete-item",
+  isAuthMiddleware,
+  shopController.postDeleteCartItem
+);
 
 // /create-order =>POST
-router.post("/create-order", shopController.postOrder);
+router.post("/create-order", isAuthMiddleware, shopController.postOrder);
 
 // /cart => GET
-router.get("/orders", shopController.getOrders);
+router.get("/orders", isAuthMiddleware, shopController.getOrders);
 
 // // /checkout => GET
 // router.get('/checkout', shopController.getCheckout);

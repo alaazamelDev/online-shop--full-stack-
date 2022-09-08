@@ -2,6 +2,7 @@ const path = require("path");
 const mongoose = require("mongoose");
 const Configs = require("./configs/configs");
 const session = require("express-session");
+const csurf = require("csurf");
 
 // Used to store sessions in MongoDB
 const MongoDBStore = require("connect-mongodb-session")(session);
@@ -15,6 +16,7 @@ const store = new MongoDBStore({
   collection: "sessions",
   databaseName: "shop",
 });
+const csurfProtection = csurf();
 
 const errorsController = require("./controllers/errors-controller");
 
@@ -39,14 +41,6 @@ app.use(
   })
 );
 
-// pass user object through requests
-app.use((req, res, next) => {
-  User.findOne().then((user) => {
-    req.user = user;
-    next();
-  });
-});
-
 app.use((req, res, next) => {
   if (!req.session.user) {
     console.log("User: ");
@@ -60,6 +54,14 @@ app.use((req, res, next) => {
     .catch((err) => console.log(err));
 });
 
+// Support CSRF Protection middleware
+app.use(csurfProtection);
+app.use((req, res, next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
+
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
 app.use(authRoutes);
@@ -70,16 +72,6 @@ mongoose
   .connect(Configs.mongoDbConnectionString)
   .then((result) => {
     console.log("Connected");
-    User.findOne().then((user) => {
-      if (!user) {
-        const user = new User({
-          email: "alaa@test.com",
-          name: "Alaa",
-          cart: { items: [] },
-        });
-        user.save();
-      }
-    });
     // app.listen(3000, "192.168.1.105");
     app.listen(3000);
   })
