@@ -1,11 +1,20 @@
 const path = require("path");
 const mongoose = require("mongoose");
 const Configs = require("./configs/configs");
+const session = require("express-session");
+
+// Used to store sessions in MongoDB
+const MongoDBStore = require("connect-mongodb-session")(session);
 
 const express = require("express");
 const bodyParser = require("body-parser");
 
 const app = express();
+const store = new MongoDBStore({
+  uri: Configs.mongoDbConnectionString,
+  collection: "sessions",
+  databaseName: "shop",
+});
 
 const errorsController = require("./controllers/errors-controller");
 
@@ -17,13 +26,33 @@ app.set("views", "views");
 
 const adminRoutes = require("./routes/admin");
 const shopRoutes = require("./routes/shop");
+const authRoutes = require("./routes/auth");
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
+app.use(
+  session({
+    secret: "my secret key",
+    store: store, // change default MemoryStore to MongoDB Store
+    resave: false,
+    saveUninitialized: false,
+  })
+);
 
 // pass user object through requests
 app.use((req, res, next) => {
-  User.findById("631733eb038bf1f296c9102c")
+  User.findOne().then((user) => {
+    req.user = user;
+    next();
+  });
+});
+
+app.use((req, res, next) => {
+  if (!req.session.user) {
+    console.log("User: ");
+    return next();
+  }
+  User.findById(req.session.user._id)
     .then((user) => {
       req.user = user;
       next();
@@ -33,6 +62,7 @@ app.use((req, res, next) => {
 
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
+app.use(authRoutes);
 
 app.use(errorsController.get404);
 
@@ -50,6 +80,7 @@ mongoose
         user.save();
       }
     });
+    // app.listen(3000, "192.168.1.105");
     app.listen(3000);
   })
   .catch((err) => {
