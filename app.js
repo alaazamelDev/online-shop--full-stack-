@@ -52,7 +52,9 @@ app.use((req, res, next) => {
       req.user = user;
       next();
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      return next(new Error(err));
+    });
 });
 
 // Support CSRF Protection middleware
@@ -71,6 +73,7 @@ app.use(shopRoutes);
 app.use(authRoutes);
 
 app.use(errorsController.get404);
+app.use(errorsController.get500);
 
 mongoose
   .connect(Configs.mongoDbConnectionString)

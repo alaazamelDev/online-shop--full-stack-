@@ -189,7 +189,9 @@ exports.postSignUp = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
     });
 };
 
@@ -254,7 +256,9 @@ exports.postResetPassword = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
     });
 };
 
@@ -285,8 +289,9 @@ exports.getNewPassword = (req, res, next) => {
       // token has been modified or expired
     })
     .catch((err) => {
-      console.log(err);
-      res.redirect("/");
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
     });
 };
 
@@ -317,6 +322,8 @@ exports.postNewPassword = (req, res, next) => {
       res.redirect("/login");
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
     });
 };
