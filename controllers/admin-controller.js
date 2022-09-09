@@ -60,26 +60,29 @@ exports.postEditProduct = (req, res, next) => {
   const updatedImageUrl = req.body.imageUrl;
   const updatedPrice = req.body.price;
 
-  Product.findById(productId)
+  Product.findOne({ _id: productId, userId: req.user._id })
     .then((product) => {
+      if (!product) {
+        return res.redirect("/");
+      }
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDescription;
       product.imageUrl = updatedImageUrl;
-      return product.save();
+      return product.save().then(() => {
+        // this executed after product saved successfully
+        console.log("UPDATED PRODUCT!");
+        res.redirect("/admin/products");
+      });
     })
-    // this executed after product saved successfully
-    .then(() => {
-      console.log("UPDATED PRODUCT!");
-      res.redirect("/admin/products");
-    })
+
     .catch((err) => {
       console.log(err);
     });
 };
 
 exports.getAdminProducts = (req, res, next) => {
-  Product.find()
+  Product.find({ userId: req.user._id })
     .then((products) => {
       console.log("Products", products);
       res.render("admin/products", {
@@ -93,12 +96,10 @@ exports.getAdminProducts = (req, res, next) => {
 
 exports.postDeleteProduct = (req, res, next) => {
   const productId = req.params.productId;
-  Product.findByIdAndRemove(productId)
-    .then((product) => {
-      return product.delete();
-    })
+  Product.deleteOne({ _id: productId, userId: req.user._id })
     // executed after deletion
     .then((result) => {
+      console.log("Product Deleted!");
       res.redirect("/admin/products");
     })
     .catch((err) => console.log(err));

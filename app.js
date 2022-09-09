@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const Configs = require("./configs/configs");
 const session = require("express-session");
 const csurf = require("csurf");
+const flash = require("connect-flash");
 
 // Used to store sessions in MongoDB
 const MongoDBStore = require("connect-mongodb-session")(session);
@@ -61,6 +62,9 @@ app.use((req, res, next) => {
   res.locals.csrfToken = req.csrfToken();
   next();
 });
+
+// apply flash middleware
+app.use(flash());
 
 app.use("/admin", adminRoutes);
 app.use(shopRoutes);
