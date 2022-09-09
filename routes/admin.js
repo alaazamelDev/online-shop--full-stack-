@@ -1,4 +1,5 @@
 const express = require("express");
+const { body, param, query } = require("express-validator");
 
 const router = express.Router();
 
@@ -9,7 +10,22 @@ const isAuthMiddleware = require("../middlewares/is-auth");
 router.get("/add-product", isAuthMiddleware, adminController.getAddProduct);
 
 // /admin/add-product => POST
-router.post("/add-product", isAuthMiddleware, adminController.postAddProduct);
+router.post(
+  "/add-product",
+  isAuthMiddleware,
+  [
+    body("title")
+      .notEmpty()
+      .withMessage("Title is required")
+      .isString()
+      .isLength({ min: 3 })
+      .trim(),
+    body("imageUrl").isURL().trim(),
+    body("price").isFloat(),
+    body("description").notEmpty().isLength({ min: 5, max: 400 }),
+  ],
+  adminController.postAddProduct
+);
 
 // /admin/edit-product/id => GET
 router.get(
@@ -19,7 +35,22 @@ router.get(
 );
 
 // /admin/edit-product/id => POST
-router.post("/edit-product", isAuthMiddleware, adminController.postEditProduct);
+router.post(
+  "/edit-product",
+  isAuthMiddleware,
+  [
+    body("title")
+      .notEmpty()
+      .withMessage("Title is required")
+      .isString()
+      .isLength({ min: 3 })
+      .trim(),
+    body("imageUrl").isURL().trim(),
+    body("price").isFloat(),
+    body("description").notEmpty().isLength({ min: 5, max: 400 }),
+  ],
+  adminController.postEditProduct
+);
 
 // /admin/delete-product/id => POST
 router.post(

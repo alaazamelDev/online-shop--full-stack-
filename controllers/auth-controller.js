@@ -3,6 +3,9 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const sendgridTransport = require("nodemailer-sendgrid-transport");
 
+// add validation
+const { validationResult } = require("express-validator");
+
 const User = require("../models/user");
 const configs = require("../configs/configs");
 
@@ -29,6 +32,11 @@ exports.getLogin = (req, res, next) => {
     path: "/login",
     pageTitle: "Login",
     errorMessage: message,
+    validationErrors: [],
+    oldInput: {
+      email: "",
+      password: "",
+    },
   });
 };
 
@@ -38,12 +46,33 @@ exports.postLogin = (req, res, next) => {
   const email = req.body.email;
   const password = req.body.password;
 
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.render("auth/login", {
+      path: "/login",
+      pageTitle: "Login",
+      errorMessage: errors.array()[0].msg,
+      validationErrors: errors.array(),
+      oldInput: {
+        email: email,
+        password: password,
+      },
+    });
+  }
   User.findOne({ email: email })
     .then((user) => {
       if (!user) {
         // user is found, validate password
-        req.flash("error", "Invalid Login Cridentials");
-        return res.redirect("/login"); // email is incorrect
+        return res.render("auth/login", {
+          path: "/login",
+          pageTitle: "Login",
+          errorMessage: "Invalid Login Cridentials!",
+          validationErrors: errors.array(),
+          oldInput: {
+            email: email,
+            password: password,
+          },
+        }); // email is incorrect
       }
       bcrypt.compare(password, user.password).then((doMatch) => {
         if (doMatch) {
@@ -55,16 +84,32 @@ exports.postLogin = (req, res, next) => {
           });
         }
         // password is incorrect
-        req.flash("error", "Wrong Password!");
-        res.redirect("/login");
+        return res.render("auth/login", {
+          path: "/login",
+          pageTitle: "Login",
+          errorMessage: "Wrong Password!",
+          validationErrors: errors.array(),
+          oldInput: {
+            email: email,
+            password: password,
+          },
+        });
       });
     })
     .catch((err) => {
       console.log(err);
       // in any error case,
       // redirect to the same page
-      req.flash("error", "Unexpected error occurred");
-      res.redirect("/login");
+      return res.render("auth/login", {
+        path: "/login",
+        pageTitle: "Login",
+        errorMessage: "Unexpected error occurred!",
+        validationErrors: errors.array(),
+        oldInput: {
+          email: email,
+          password: password,
+        },
+      });
     });
 };
 
@@ -81,6 +126,13 @@ exports.getSignUp = (req, res, next) => {
     path: "/sign-up",
     pageTitle: "SignUp",
     errorMessage: message,
+    oldInput: {
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
+    validationErrors: [],
   });
 };
 
@@ -92,43 +144,49 @@ exports.postSignUp = (req, res, next) => {
   const password = req.body.password;
   const confirmPassword = req.body.confirmPassword;
 
-  // find if the user is already exists
-  User.findOne({ email: email })
-    .then((userDoc) => {
-      if (userDoc) {
-        req.flash("error", "Email is already exists, please login");
-        return res.redirect("/sign-up");
-      }
-      // Encrypt Password
-      return bcrypt
-        .hash(password, 12)
-        .then((hashedPassword) => {
-          const user = new User({
-            name: name,
-            email: email,
-            password: hashedPassword,
-            cart: {
-              items: [],
-            },
-          });
-          return user.save();
-        })
-        .then((result) => {
-          res.redirect("/login");
-          return transporter.sendMail({
-            to: email,
-            from: "alaa.zamel23@gmail.com",
-            replyTo: "alaa.zamel23@gmail.com",
-            subject: "Signing Up succeeded!",
-            html: "<h1>Thanks for signing up in our store!</h1>",
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-        });
+  // handle thrown errors
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    // print the errors
+    console.log(errors.array());
+    return res.status(422).render("auth/sign-up", {
+      path: "/sign-up",
+      pageTitle: "SignUp",
+      errorMessage: errors.array()[0].msg,
+      oldInput: {
+        name: name,
+        email: email,
+        password: password,
+        confirmPassword: confirmPassword,
+      },
+      validationErrors: errors.array(),
+    });
+  }
+  // Encrypt Password
+  bcrypt
+    .hash(password, 12)
+    .then((hashedPassword) => {
+      const user = new User({
+        name: name,
+        email: email,
+        password: hashedPassword,
+        cart: {
+          items: [],
+        },
+      });
+      return user.save();
     })
     .then((result) => {
-      console.log("E-Mail sent successfully");
+      res.redirect("/login");
+      // send welocming mail to user email
+      return transporter.sendMail({
+        to: email,
+        from: "alaa.zamel23@gmail.com",
+        replyTo: "alaa.zamel23@gmail.com",
+        subject: "Signing Up succeeded!",
+        html: "<h1>Thanks for signing up in our store!</h1>",
+      });
     })
     .catch((err) => {
       console.log(err);
