@@ -15,8 +15,31 @@ exports.getAddProduct = (req, res, next) => {
 exports.postAddProduct = (req, res, next) => {
   const title = req.body.title;
   const description = req.body.description;
-  const imageUrl = req.body.imageUrl;
+  const image = req.file;
   const price = req.body.price;
+
+  console.log(image);
+
+  if (!image) {
+    // image is not accepted or not set.
+    return res.status(422).render("admin/add-edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      hasError: true,
+      errorMessage: "product image must be an image file",
+      validationErrors: [],
+      product: {
+        title: title,
+        price: price,
+        description: description,
+      },
+    });
+  }
+
+  const imageUrl = image.path;
+
+  console.log(image);
   const product = new Product({
     title: title,
     price: price,
@@ -37,7 +60,6 @@ exports.postAddProduct = (req, res, next) => {
       validationErrors: errors.array(),
       product: {
         title: title,
-        imageUrl: imageUrl,
         price: price,
         description: description,
       },
@@ -87,10 +109,11 @@ exports.postEditProduct = (req, res, next) => {
   const productId = req.body.productId;
   const updatedTitle = req.body.title;
   const updatedDescription = req.body.description;
-  const updatedImageUrl = req.body.imageUrl;
+  const image = req.file;
   const updatedPrice = req.body.price;
 
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
     return res.status(422).render("admin/add-edit-product", {
       pageTitle: "Edit Product",
@@ -102,7 +125,6 @@ exports.postEditProduct = (req, res, next) => {
       product: {
         _id: productId,
         title: updatedTitle,
-        imageUrl: updatedImageUrl,
         price: updatedPrice,
         description: updatedDescription,
       },
@@ -117,7 +139,11 @@ exports.postEditProduct = (req, res, next) => {
       product.title = updatedTitle;
       product.price = updatedPrice;
       product.description = updatedDescription;
-      product.imageUrl = updatedImageUrl;
+      if (image) {
+        // image is defined
+        product.imageUrl = image.path;
+      }
+
       return product.save().then(() => {
         // this executed after product saved successfully
         console.log("UPDATED PRODUCT!");
