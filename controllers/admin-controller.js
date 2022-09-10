@@ -1,10 +1,14 @@
+const { validationResult } = require("express-validator");
 const Product = require("../models/product");
 
 exports.getAddProduct = (req, res, next) => {
-  res.render("admin/add-edit-product", {
+  return res.render("admin/add-edit-product", {
     pageTitle: "Add Product",
     path: "/admin/add-product",
     editing: false,
+    hasError: false,
+    errorMessage: null,
+    validationErrors: [],
   });
 };
 
@@ -20,13 +24,34 @@ exports.postAddProduct = (req, res, next) => {
     description: description,
     userId: req.user,
   });
+
+  // collect all errors
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render("admin/add-edit-product", {
+      pageTitle: "Add Product",
+      path: "/admin/add-product",
+      editing: false,
+      hasError: true,
+      errorMessage: errors.array()[0].msg,
+      validationErrors: errors.array(),
+      product: {
+        title: title,
+        imageUrl: imageUrl,
+        price: price,
+        description: description,
+      },
+    });
+  }
   product
     .save()
     .then((result) => {
       res.redirect("/admin/products");
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
     });
 };
 
@@ -46,10 +71,15 @@ exports.getEditProduct = (req, res, next) => {
         pageTitle: "Edit Product",
         path: "/admin/edit-product",
         editing: editMode,
+        validationErrors: [],
+        hasError: false,
+        errorMessage: null,
       });
     })
     .catch((err) => {
-      console.log(err);
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
     });
 };
 
@@ -59,6 +89,25 @@ exports.postEditProduct = (req, res, next) => {
   const updatedDescription = req.body.description;
   const updatedImageUrl = req.body.imageUrl;
   const updatedPrice = req.body.price;
+
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render("admin/add-edit-product", {
+      pageTitle: "Edit Product",
+      path: "/admin/add-product",
+      editing: true,
+      hasError: true,
+      errorMessage: errors.array()[0].msg,
+      validationErrors: errors.array(),
+      product: {
+        _id: productId,
+        title: updatedTitle,
+        imageUrl: updatedImageUrl,
+        price: updatedPrice,
+        description: updatedDescription,
+      },
+    });
+  }
 
   Product.findOne({ _id: productId, userId: req.user._id })
     .then((product) => {
@@ -75,9 +124,10 @@ exports.postEditProduct = (req, res, next) => {
         res.redirect("/admin/products");
       });
     })
-
     .catch((err) => {
-      console.log(err);
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
     });
 };
 
@@ -91,7 +141,11 @@ exports.getAdminProducts = (req, res, next) => {
         path: "/admin/products",
       });
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
+    });
 };
 
 exports.postDeleteProduct = (req, res, next) => {
@@ -102,5 +156,9 @@ exports.postDeleteProduct = (req, res, next) => {
       console.log("Product Deleted!");
       res.redirect("/admin/products");
     })
-    .catch((err) => console.log(err));
+    .catch((err) => {
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
+    });
 };
