@@ -1,4 +1,5 @@
 const path = require("path");
+const { v4: uuidv4 } = require("uuid");
 const mongoose = require("mongoose");
 const Configs = require("./configs/configs");
 const session = require("express-session");
@@ -10,6 +11,23 @@ const MongoDBStore = require("connect-mongodb-session")(session);
 
 const express = require("express");
 const bodyParser = require("body-parser");
+const multer = require("multer");
+
+const fileStorage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, "images"),
+  filename: (req, file, cb) => cb(null, uuidv4() + "-" + file.originalname),
+});
+
+const fileFilter = (req, file, cb) => {
+  if (
+    ["image/png", "image/jpg", "image/jpeg", "image/gif"].includes(
+      file.mimetype
+    )
+  ) {
+    return cb(null, true);
+  }
+  return cb(null, false);
+};
 
 const app = express();
 const store = new MongoDBStore({
@@ -32,7 +50,14 @@ const shopRoutes = require("./routes/shop");
 const authRoutes = require("./routes/auth");
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(
+  multer({
+    storage: fileStorage,
+    fileFilter: fileFilter,
+  }).single("image")
+);
 app.use(express.static(path.join(__dirname, "public")));
+app.use("/images", express.static(path.join(__dirname, "images")));
 app.use(
   session({
     secret: "my secret key",
@@ -44,7 +69,6 @@ app.use(
 
 app.use((req, res, next) => {
   if (!req.session.user) {
-    console.log("User: ");
     return next();
   }
   User.findById(req.session.user._id)

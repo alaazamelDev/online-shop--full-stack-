@@ -12,10 +12,9 @@ router.post(
   [
     check("email")
       .isEmail()
-      .withMessage("Please enter a valid email address")
-      .normalizeEmail(),
+      .withMessage("Please enter a valid email address"),
     body("password")
-      .isStrongPassword({ minLength: 8 })
+      .isLength({ min: 8 })
       .trim()
       .withMessage("it has to have a minimum length of 8 charachters"),
   ],
@@ -30,7 +29,6 @@ router.post(
     check("email")
       .isEmail()
       .withMessage("Please enter a valid email address")
-      .normalizeEmail()
       .custom(async (userEmail, {}) => {
         const user = await User.findOne({ email: userEmail });
         if (user) {
@@ -42,7 +40,7 @@ router.post(
         return true;
       }),
     body("password")
-      .isStrongPassword({ minLength: 8 })
+      .isLength({ min: 8 })
       .trim()
       .withMessage(
         "your password is weak, as it has to have a minimum length of 8 charachters"
