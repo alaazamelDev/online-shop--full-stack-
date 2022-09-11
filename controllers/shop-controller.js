@@ -5,37 +5,70 @@ const PDFDocument = require("pdfkit");
 const Product = require("../models/product");
 const Order = require("../models/order");
 
+// Pagination constants
+const ITEMS_PER_PAGE = 1;
+
 // Index Page
 exports.getHomePage = (req, res, next) => {
+  // get current page index from query params
+  const page = +req.query.page || 1;
+  let productsCount;
+
   Product.find()
+    .countDocuments()
+    .then((count) => {
+      productsCount = count;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE);
+    })
     .then((products) => {
       res.render("shop/index", {
         prods: products,
         pageTitle: "Shop",
         path: "/",
+        currentPage: page,
+        hasNextPage: page * ITEMS_PER_PAGE < productsCount,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(productsCount / ITEMS_PER_PAGE),
       });
     })
     .catch((err) => {
-      const error = new Error("Server Error");
-      error.httpStatusCode = 500;
-      next(error);
+      next(err);
     });
 };
 
 // User's Products page
 exports.getProducts = (req, res, next) => {
+  // get current page index from query params
+  const page = +req.query.page || 1;
+  let productsCount;
+
   Product.find()
+    .countDocuments()
+    .then((count) => {
+      productsCount = count;
+      return Product.find()
+        .skip((page - 1) * ITEMS_PER_PAGE)
+        .limit(ITEMS_PER_PAGE);
+    })
     .then((products) => {
       res.render("shop/product-list", {
         prods: products,
         pageTitle: "Products",
         path: "/products",
+        currentPage: page,
+        hasNextPage: page * ITEMS_PER_PAGE < productsCount,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(productsCount / ITEMS_PER_PAGE),
       });
     })
     .catch((err) => {
-      const error = new Error("Server Error");
-      error.httpStatusCode = 500;
-      next(error);
+      next(err);
     });
 };
 
