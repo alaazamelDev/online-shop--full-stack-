@@ -50,14 +50,14 @@ router.post(
   adminController.postEditProduct
 );
 
-// /admin/delete-product/id => POST
-router.post(
-  "/delete-product/:productId",
-  isAuthMiddleware,
-  adminController.postDeleteProduct
-);
-
 // /admin/products => GET
 router.get("/products", isAuthMiddleware, adminController.getAdminProducts);
+
+// /admin/delete-product/id => POST
+router.delete(
+  "/product/:productId",
+  isAuthMiddleware,
+  adminController.deleteProduct
+);
 
 module.exports = router;
