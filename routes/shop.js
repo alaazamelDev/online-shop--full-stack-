@@ -26,15 +26,18 @@ router.post(
   shopController.postDeleteCartItem
 );
 
-// /create-order =>POST
-router.post("/create-order", isAuthMiddleware, shopController.postOrder);
-
 // /cart => GET
 router.get("/orders", isAuthMiddleware, shopController.getOrders);
 
-// // /checkout => GET
-// router.get('/checkout', shopController.getCheckout);
-
 router.get("/orders/:orderId", isAuthMiddleware, shopController.getInvoice);
+
+// /checkout => GET
+router.get("/checkout", shopController.getCheckout);
+
+// /checkout/success => GET
+router.get("/checkout/success", shopController.getCheckoutSuccess);
+
+// /checkout/cancel => GET
+router.get("/checkout/cancel", shopController.getCheckout);
 
 module.exports = router;
