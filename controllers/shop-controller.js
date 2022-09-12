@@ -119,14 +119,6 @@ exports.postCart = (req, res, next) => {
     });
 };
 
-// // Checkout Page
-// exports.getCheckout = (req, res, next) => {
-//   res.render("shop/checkout", {
-//     pageTitle: "Checkout",
-//     path: "/checkout",
-//   });
-// };
-
 exports.postDeleteCartItem = (req, res, next) => {
   const productId = req.body.productId;
   req.user
@@ -237,4 +229,29 @@ exports.getInvoice = (req, res, next) => {
     // close the stream
     pdf.end();
   });
+};
+
+exports.getCheckout = (req, res, next) => {
+  req.user
+    .populate("cart.items.productId")
+    .then((user) => {
+      const products = user.cart.items;
+      let totalPrice = 0;
+
+      products.forEach((product) => {
+        totalPrice += product.quantity * product.productId.price;
+      });
+
+      res.render("shop/checkout", {
+        products: products,
+        pageTitle: "Checkout",
+        path: "/checkout",
+        totalPrice: totalPrice,
+      });
+    })
+    .catch((err) => {
+      const error = new Error("Server Error");
+      error.httpStatusCode = 500;
+      next(error);
+    });
 };
