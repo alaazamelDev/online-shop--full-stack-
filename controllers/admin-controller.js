@@ -176,25 +176,23 @@ exports.getAdminProducts = (req, res, next) => {
     });
 };
 
-exports.postDeleteProduct = (req, res, next) => {
+exports.deleteProduct = (req, res, next) => {
   const productId = req.params.productId;
 
   // get the file by id
   Product.findById(productId)
     .then((product) => {
       if (!product) {
-        return next(new Error("No Product was found!"));
+        return res.status(404).json({ message: "No Product was found!" });
       }
       fileHelper.deleteFile(product.imageUrl);
       return Product.deleteOne({ _id: productId, userId: req.user._id });
     })
     .then((result) => {
       console.log("Product Deleted!");
-      res.redirect("/admin/products");
+      return res.status(200).json({ message: "Success!" });
     })
     .catch((err) => {
-      const error = new Error("Server Error");
-      error.httpStatusCode = 500;
-      next(error);
+      res.status(500).json({ message: "Server Error!" });
     });
 };
